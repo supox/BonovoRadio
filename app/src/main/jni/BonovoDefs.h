@@ -35,3 +35,11 @@ struct radio_freq {
   unsigned char is_valid;
 };
 
+const char* RDS_CTRL_NODE = "/dev/bonovo_rds";
+
+#define RDS_DEV_MAJOR 237
+
+#define RDS_IOCTL_START_DATA _IO(RDS_DEV_MAJOR, 0)  // request rds data
+#define RDS_IOCTL_STOP_DATA _IO(RDS_DEV_MAJOR, 1)  // stop transfer rds data to android
+
+

@@ -37,15 +37,14 @@ void jni_setSeekState(JNIEnv *env, jobject thiz, jint state) {
   s_radio->setSeekState(state);
 }
 
-jboolean jni_getAFState(JNIEnv *env, jobject thiz) {
-  return s_radio->getAFState() == IRadio::START;
-}
-void jni_setAFState(JNIEnv *env, jobject thiz, jboolean state) {
-  s_radio->setAFState(state ? IRadio::START : IRadio::STOP);
-}
 jboolean jni_getRDSState(JNIEnv *env, jobject thiz) {
   return s_radio->getRDSState() == IRadio::START;
 }
+
+jint jni_readRDSBuffer(JNIEnv* env, jobject thiz) {
+	return s_radio->readRDS();
+}
+
 void jni_setRDSState(JNIEnv *env, jobject thiz, jboolean state) {
   s_radio->setRDSState(state ? IRadio::START : IRadio::STOP);
 }
@@ -65,10 +64,10 @@ static JNINativeMethod methods[] = {
     {"setBand", "(I)V", (void *)jni_setBand},
     {"getSeekState", "()I", (void *)jni_getSeekState},
     {"setSeekState", "(I)V", (void *)jni_setSeekState},
-    {"getAFState", "()Z", (void *)jni_getAFState},
-    {"setAFState", "(Z)V", (void *)jni_setAFState},
+
     {"getRDSState", "()Z", (void *)jni_getRDSState},
     {"setRDSState", "(Z)V", (void *)jni_setRDSState},
+    {"readRDS", "()I", (void *)jni_readRDSBuffer},
 
     {"getVolume", "()I", (void *)jni_getVolume},
     {"setVolume", "(I)V", (void *)jni_setVolume},

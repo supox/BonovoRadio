@@ -1,7 +1,6 @@
 package com.supox.bonovoradio.domain;
 
 public class RadioState {
-    public AFState afState;
     public Band band;
     public Frequency frequency;
     public RDSState rdsState;

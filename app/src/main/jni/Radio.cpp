@@ -13,6 +13,7 @@
 Radio::Radio() :
   fd_radio(-1),
   fd_bonovo(-1),
+  fd_rds(-1),
   m_SeekState(STOP),
   m_state(STOP),
   m_AFState(STOP),
@@ -79,7 +80,39 @@ void Radio::setAFState(State state) {}
 
 Radio::State Radio::getRDSState() { return m_RDSState; }
 
-void Radio::setRDSState(State state) {}
+void Radio::setRDSState(State state) {
+  if(fd_rds < 0)
+    return;
+
+  switch(state) {
+  case START:
+    // if(ioctl(fd_rds, RDS_IOCTL_START_DATA) == 0) {
+    if(send_command(CMD_RADIO_RDS_ON_OFF, 0x01, 0)) {
+      Logger::Debug("Starting RDS");
+      m_RDSState = state;
+      }
+    break;
+    case STOP: default:
+    // if(ioctl(fd_rds, RDS_IOCTL_STOP_DATA) == 0) {
+    if(send_command(CMD_RADIO_RDS_ON_OFF, 0x00, 0)) {
+      Logger::Debug("Stopping RDS");
+      m_RDSState = state;
+      }
+    break;
+  }
+}
+
+int Radio::readRDS() {
+  if (m_RDSState != START) {
+    return -2;
+  }
+
+  unsigned char c;
+  if(read(fd_rds, &c, sizeof(c)) == 1)
+    return c;
+
+  return -1;
+}
 
 int Radio::getVolume() { return m_Volume; }
 
@@ -244,10 +277,16 @@ bool Radio::open_dev() {
     Logger::Error("Could not open radio dev node");
     return false;
   }
+
   fd_bonovo = open(AUDIO_CTRL_NODE, O_RDWR | O_NOCTTY | O_NONBLOCK);
   if (fd_bonovo < 0) {
     Logger::Error("Could not open bonovo dev node");
     return false;
+  }
+
+  fd_rds = open(RDS_CTRL_NODE, O_RDWR | O_NOCTTY | O_NONBLOCK);
+  if (fd_rds < 0) {
+    Logger::Debug("Could not open rds dev node, skipping");
   }
 
   if (!activeAudio(CODEC_LEVEL_RADIO)) {
@@ -259,11 +298,3 @@ bool Radio::open_dev() {
   return true;
 }
 
-// TODO
-#define RDS_CDEV_NAME "bonovo_rds"  // device name
-#define DEV_MAJOR 237
-#define DEV_MINOR 0
-
-#define RDS_IOCTL_START_DATA _IO(DEV_MAJOR, 0)  // request rds data
-#define RDS_IOCTL_STOP_DATA \
-  _IO(DEV_MAJOR, 1)  // stop transfer rds data to android

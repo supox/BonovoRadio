@@ -21,6 +21,7 @@ class Radio : public IRadio {
   virtual void setRDSState(State state);
   virtual int getVolume();
   virtual void setVolume(const int volume);
+  virtual int readRDS();
 
   private:
   enum CODEC_Level {
@@ -48,6 +49,7 @@ class Radio : public IRadio {
 
   int fd_radio;
   int fd_bonovo;
+  int fd_rds;
   int m_SeekState;
   State m_state;
   State m_AFState;

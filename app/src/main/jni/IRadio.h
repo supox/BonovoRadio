@@ -27,10 +27,9 @@ class IRadio {
   virtual void setBand(Band band) = 0;
   virtual int getSeekState() = 0;
   virtual void setSeekState(int state) = 0;
-  virtual State getAFState() = 0;
-  virtual void setAFState(State state) = 0;
   virtual State getRDSState() = 0;
   virtual void setRDSState(State state) = 0;
+  virtual int readRDS() = 0;
 
   virtual int getVolume() = 0;
   virtual void setVolume(const int volume) = 0;

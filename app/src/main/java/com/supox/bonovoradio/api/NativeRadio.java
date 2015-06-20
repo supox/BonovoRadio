@@ -21,13 +21,11 @@ public class NativeRadio {
 
     public native final void setSeekState(int state) throws IllegalStateException;
 
-    public native final boolean getAFState() throws IllegalStateException;
-
-    public native final void setAFState(boolean on) throws IllegalStateException;
-
     public native final boolean getRDSState() throws IllegalStateException;
 
     public native final void setRDSState(boolean on) throws IllegalStateException;
+
+    public native final int readRDS() throws IllegalStateException;
 
     public native final int getVolume() throws IllegalStateException;
 

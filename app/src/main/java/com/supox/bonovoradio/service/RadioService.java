@@ -18,7 +18,6 @@ import com.supox.bonovoradio.R;
 import com.supox.bonovoradio.api.IRadio;
 import com.supox.bonovoradio.api.IRadioListener;
 import com.supox.bonovoradio.api.NativeRadio;
-import com.supox.bonovoradio.domain.AFState;
 import com.supox.bonovoradio.domain.Band;
 import com.supox.bonovoradio.domain.Frequency;
 import com.supox.bonovoradio.domain.Preset;
@@ -27,6 +26,8 @@ import com.supox.bonovoradio.domain.RadioState;
 import com.supox.bonovoradio.domain.SeekState;
 import com.supox.bonovoradio.domain.TunerState;
 
+import java.io.ByteArrayOutputStream;
+import java.nio.ByteBuffer;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -129,6 +130,8 @@ public class RadioService extends Service implements IRadio, AudioManager.OnAudi
         mState.frequency = freq;
         mRadio.setFrequency(freq.toInt());
 
+        setRDSState(RDSState.Start);
+
         broadcastState();
     }
 
@@ -220,18 +223,6 @@ public class RadioService extends Service implements IRadio, AudioManager.OnAudi
     }
 
     @Override
-    public AFState getAFState() {
-        mState.afState = mRadio.getAFState() ? AFState.Start : AFState.Stop;
-        return mState.afState;
-    }
-
-    @Override
-    public void setAFState(AFState state) {
-        mRadio.setAFState(state == AFState.Start);
-        mState.afState = state;
-    }
-
-    @Override
     public RDSState getRDSState() {
         mState.rdsState = mRadio.getRDSState() ? RDSState.Start : RDSState.Stop;
         return mState.rdsState;
@@ -241,6 +232,23 @@ public class RadioService extends Service implements IRadio, AudioManager.OnAudi
     public void setRDSState(RDSState state) {
         mRadio.setRDSState(state == RDSState.Start);
         mState.rdsState = state;
+    }
+
+    @Override
+    public byte[] readRDS() {
+        ByteArrayOutputStream stream = new ByteArrayOutputStream();
+        while(stream.size() < 128) {
+            int ch = mRadio.readRDS();
+            if(ch < 0)
+                break;
+            stream.write((byte)ch);
+        }
+
+        byte[] result = stream.toByteArray();
+        if(result.length > 0) {
+            Log.d(TAG, "Got RDS data. Length = " + result.length);
+        }
+        return result;
     }
 
     @Override
@@ -466,8 +474,8 @@ public class RadioService extends Service implements IRadio, AudioManager.OnAudi
 
             getFrequency();
             getVolume();
-            getAFState();
             getRDSState();
+            readRDS();
             getBand();
             broadcastState();
         }
