@@ -363,35 +363,26 @@ public class MainActivity extends Activity implements ServiceConnection {
         if(mRadio == null)
             return;
 
-        LayoutInflater layoutInflater
-                = (LayoutInflater) getBaseContext()
-                .getSystemService(LAYOUT_INFLATER_SERVICE);
-        View popupView = layoutInflater.inflate(R.layout.popup_edit_preset, null);
-        final PopupWindow popupWindow = new PopupWindow(
-                popupView,
-                LayoutParams.WRAP_CONTENT,
-                LayoutParams.WRAP_CONTENT);
-
-        final EditText presetEditText = (EditText) popupView.findViewById(R.id.et_preset);
-        final Button btnDismiss = (Button) popupView.findViewById(R.id.bt_cancel);
-        final Button btnOK = (Button) popupView.findViewById(R.id.bt_ok);
-
-        btnDismiss.setOnClickListener(new Button.OnClickListener() {
+        LayoutInflater factory = LayoutInflater.from (this);
+        final View editTextView = factory.inflate(R.layout.edit_text, null);
+        AlertDialog.Builder builder = new AlertDialog.Builder (this);
+        builder.setTitle("Preset Rename");
+        builder.setView(editTextView);
+        final EditText presetEditText = (EditText) editTextView.findViewById(R.id.edit_text);
+        presetEditText.setText(mRadio.getPresets()[presetIndex].name);
+        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
             @Override
-            public void onClick(View v) {
-                popupWindow.dismiss();
-            }
-        });
-
-        btnOK.setOnClickListener(new Button.OnClickListener() {
-            @Override
-            public void onClick(View v) {
+            public void onClick(DialogInterface dialog, int whichButton) {
                 mRadio.renamePreset(presetIndex, presetEditText.getText().toString());
             }
         });
+        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
 
-        presetEditText.setText(mRadio.getPresets()[presetIndex].name);
-        popupWindow.showAsDropDown(mFreqView, 50, -30);
+            }
+        });
+        builder.show();
     }
 }
 
