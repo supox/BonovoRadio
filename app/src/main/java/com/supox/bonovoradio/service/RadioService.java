@@ -319,6 +319,14 @@ public class RadioService extends Service implements IRadio, AudioManager.OnAudi
     }
 
     @Override
+    public void renamePreset(int presetIndex, String name) {
+        mPresetsManager.renamePreset(presetIndex, name);
+        if (mListener != null)
+            mListener.onPresetsChanged(getPresets());
+
+    }
+
+    @Override
     public Preset[] getPresets() {
         return mPresetsManager.getPresets().toArray(new Preset[0]);
     }
@@ -378,9 +386,14 @@ public class RadioService extends Service implements IRadio, AudioManager.OnAudi
                 PendingIntent.FLAG_UPDATE_CURRENT
         );
 
+        String freq = "";
+        try {
+            freq = mState.frequency.toMHzString();
+        } catch(NullPointerException ex) {}
+
         Notification notification = new Notification.Builder(this)
                 .setContentTitle("Radio")
-                .setContentText(mState.frequency.toMHzString())
+                .setContentText(freq)
                 .setSmallIcon(R.drawable.ic_launcher)
                 .setContentIntent(pIntent)
                 .addAction(R.drawable.btn_rw, "", pPrevIntent)

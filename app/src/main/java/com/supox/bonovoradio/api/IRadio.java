@@ -60,4 +60,5 @@ public interface IRadio {
 
     void stepDown();
 
+    void renamePreset(int presetIndex, String name);
 }

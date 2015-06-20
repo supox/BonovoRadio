@@ -12,11 +12,16 @@ import android.content.ServiceConnection;
 import android.content.res.Resources;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup.LayoutParams;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.PopupWindow;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
@@ -341,7 +346,7 @@ public class MainActivity extends Activity implements ServiceConnection {
                         mRadio.saveCurrentAsPreset(presetIndex);
                         break;
                     case 1:
-                        // TODO - rename
+                        showRenameDialog(presetIndex);
                         break;
                     case 2:
                         mRadio.deletePreset(presetIndex);
@@ -352,6 +357,41 @@ public class MainActivity extends Activity implements ServiceConnection {
             }
         });
         builder.show();
+    }
+
+    private void showRenameDialog(final int presetIndex) {
+        if(mRadio == null)
+            return;
+
+        LayoutInflater layoutInflater
+                = (LayoutInflater) getBaseContext()
+                .getSystemService(LAYOUT_INFLATER_SERVICE);
+        View popupView = layoutInflater.inflate(R.layout.popup_edit_preset, null);
+        final PopupWindow popupWindow = new PopupWindow(
+                popupView,
+                LayoutParams.WRAP_CONTENT,
+                LayoutParams.WRAP_CONTENT);
+
+        final EditText presetEditText = (EditText) popupView.findViewById(R.id.et_preset);
+        final Button btnDismiss = (Button) popupView.findViewById(R.id.bt_cancel);
+        final Button btnOK = (Button) popupView.findViewById(R.id.bt_ok);
+
+        btnDismiss.setOnClickListener(new Button.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                popupWindow.dismiss();
+            }
+        });
+
+        btnOK.setOnClickListener(new Button.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mRadio.renamePreset(presetIndex, presetEditText.getText().toString());
+            }
+        });
+
+        presetEditText.setText(mRadio.getPresets()[presetIndex].name);
+        popupWindow.showAsDropDown(mFreqView, 50, -30);
     }
 }
 

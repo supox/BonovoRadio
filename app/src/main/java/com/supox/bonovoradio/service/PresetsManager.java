@@ -95,4 +95,11 @@ public final class PresetsManager {
         } catch (Exception ex) {
         }
     }
+
+    public void renamePreset(int presetIndex, String name) {
+        try {
+            mPresets.get(presetIndex).name = name;
+        } catch (Exception ex) {
+        }
+    }
 }
