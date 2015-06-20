@@ -10,6 +10,7 @@ import android.content.SharedPreferences;
 import android.media.AudioManager;
 import android.os.Binder;
 import android.os.IBinder;
+import android.util.Log;
 
 import com.google.gson.Gson;
 import com.supox.bonovoradio.MainActivity;
@@ -45,6 +46,7 @@ public class RadioService extends Service implements IRadio, AudioManager.OnAudi
     private Timer mPollTimer;
     private static final int poll_ms = 1000;
     private static final int wait_ms = 1000;
+    private static final String TAG = "RadioService";
 
     @Override
     public void onCreate() {
@@ -65,17 +67,22 @@ public class RadioService extends Service implements IRadio, AudioManager.OnAudi
     }
 
     private void restoreState() {
+        Log.d(TAG, "Restoring state");
+        setTunerState(TunerState.Start);
         if (settings.contains("RadioState")) {
             mState = gson.fromJson(settings.getString("RadioState", ""), mState.getClass());
 
-            mRadio.setState(true);
-            setBand(mState.band);
-            mRadio.setFrequency(mState.frequency.toInt());
-            mRadio.setVolume(mState.volume);
+            if(mState.band == null)
+                setBand(Band.EU);
+            else
+                setBand(mState.band);
+            setFrequency(mState.frequency);
+            setVolume(mState.volume);
         }
     }
 
     private void saveState() {
+        Log.d(TAG, "Saving state");
         SharedPreferences.Editor editor = settings.edit();
         editor.putString("RadioState", gson.toJson(mState));
         editor.commit();
@@ -111,6 +118,8 @@ public class RadioService extends Service implements IRadio, AudioManager.OnAudi
 
     @Override
     public void setFrequency(Frequency freq) {
+        Log.d(TAG, "Setting frequency: " + freq.toMHzString());
+
         mState.frequency = freq;
         mRadio.setFrequency(freq.toInt());
 
@@ -136,6 +145,7 @@ public class RadioService extends Service implements IRadio, AudioManager.OnAudi
 
     @Override
     public void setBand(Band band) {
+        Log.d(TAG, "Setting band: " + band.toString());
         int iband;
         switch (band) {
             case EU:
@@ -175,6 +185,8 @@ public class RadioService extends Service implements IRadio, AudioManager.OnAudi
 
     @Override
     public void setSeekState(SeekState state) {
+        Log.d(TAG, "Setting seek state: " + state.toString());
+
         int istate;
         switch (state) {
             case NotSeek:
@@ -229,6 +241,8 @@ public class RadioService extends Service implements IRadio, AudioManager.OnAudi
 
     @Override
     public void setVolume(int volume) {
+        Log.d(TAG, "Setting volume: " + volume);
+
         mRadio.setVolume(volume);
         mState.volume = volume;
 
@@ -237,6 +251,7 @@ public class RadioService extends Service implements IRadio, AudioManager.OnAudi
 
     @Override
     public void toggleMute() {
+        Log.d(TAG, "Toggeling mute");
         if (mState.volume == 0) {
             setVolume(mState.volumeBeforeMute);
         } else {
@@ -253,6 +268,8 @@ public class RadioService extends Service implements IRadio, AudioManager.OnAudi
 
     @Override
     public void setTunerState(TunerState state) {
+        Log.d(TAG, "Setting tuner state: " + state.toString());
+
         mRadio.setState(state == TunerState.Start);
         mState.tunerState = state;
 
@@ -414,6 +431,9 @@ public class RadioService extends Service implements IRadio, AudioManager.OnAudi
         public void run() {
             if (!mRadio.getState())
                 return;
+
+            Log.v(TAG, "Polling state");
+
             getFrequency();
             getVolume();
             getAFState();
