@@ -1,4 +1,5 @@
 #include "Radio.h"
+#include "Logger.h"
 
 #include <stdio.h>
 #include <errno.h>
@@ -18,7 +19,8 @@ Radio::Radio() :
   m_RDSState(STOP),
   m_band(FM_EU),
   m_Frequency(0),
-  m_Volume(30) {
+  m_Volume(30),
+  m_LastSeekDirection(false) {
 }
 
 bool Radio::setState(State state) {
@@ -49,7 +51,9 @@ void Radio::setBand(Band band) {
   int freq_inc = 5;
   if (band == FM_US) freq_inc = 10;
 
-  band_set(freq_lo, freq_hi, band, freq_inc);
+  if(!band_set(freq_lo, freq_hi, band, freq_inc)) {
+    Logger::Error("Failed setting band.");
+  }
 }
 
 int Radio::getSeekState() { return m_SeekState; }
@@ -79,26 +83,37 @@ void Radio::setRDSState(State state) {}
 
 int Radio::getVolume() { return m_Volume; }
 
+const static int maxVolume = 100;
 void Radio::setVolume(const int volume) {
-  if (!send_command(CMD_RADIO_VOLUME, volume > 100 ? 100 : volume, 0)) {
+  if (!send_command(CMD_RADIO_MUTE, (volume == 0 ? 3 : 0), 0))
+   return;
+  if (!send_command(CMD_RADIO_VOLUME, volume > maxVolume ? maxVolume : volume, 0)) {
     return;
   }
 
   m_Volume = volume;
 }
 
+char buffer[256];
 const static int freqFactor = 1;
 void Radio::setFrequency(const int freq) {
+  snprintf(buffer, sizeof(buffer), "Setting frequency %d", freq);
+  Logger::Debug(buffer);
+
   int freq10 = freq / freqFactor;
   if(send_command(CMD_RADIO_FREQ, freq10 & 0x0FF, (freq10 >> 8) & 0x0FF))
     m_Frequency = freq;
+  else {
+    snprintf(buffer, sizeof(buffer), "Failed setting frequency to %d", freq);
+    Logger::Error(buffer);
+  }
 }
 
 int Radio::getFrequency() {
   radio_freq temp;
 
   int res=1, freq=m_Frequency;
-  for (int count = 0; res >= 0 && count < 2; count++) {
+  for (int count = 0; res >= 0 && count < 20; count++) {
     res = ioctl(fd_bonovo, IOCTL_HANDLE_GET_RADIO_FREQ, &temp);
     if (res >= 0) {
       freq = freqFactor * (temp.freq[0] + (temp.freq[1] << 8));
@@ -106,7 +121,11 @@ int Radio::getFrequency() {
   }
 
   m_SeekState = STOP;
-  return (freq);
+  m_Frequency = freq;
+
+  snprintf(buffer, sizeof(buffer), "Got frequency %d. Valid=%d", m_Frequency, temp.is_valid ? 1 : 0);
+  Logger::Verbose(buffer);
+  return (m_Frequency);
 }
 
 unsigned int
@@ -121,6 +140,7 @@ Radio::checkSum(unsigned char* cmdBuf, int size) const {
 bool Radio::send_command(const char cmd, const char param1,
                          const char param2) const {
   if ((fd_radio < 0) || (fd_bonovo < 0)) {
+    Logger::Error("Could not send command since handle is not opened.");
     return false;
   }
 
@@ -132,12 +152,16 @@ bool Radio::send_command(const char cmd, const char param1,
   cmdBuf[9] = (sum >> 8) & 0xFF;
 
   if (write(fd_radio, cmdBuf, cmdBuf[2]) < 0) {
+    Logger::Error("Could not send command since write error.");
     return false;
   }
   return true;
 }
 
 bool Radio::band_set(int low, int high, int band, int step_len) {
+  snprintf(buffer, sizeof(buffer), "Setting band low, high, band, step_len = %d, %d, %d, %d ", low, high, band, step_len);
+  Logger::Debug(buffer);
+
   if (!send_command(CMD_RADIO_BAND_SELECT, band, 0))
     return false;
 
@@ -156,9 +180,17 @@ bool Radio::band_set(int low, int high, int band, int step_len) {
 
 bool Radio::activeAudio(CODEC_Level codec_mode) {
   if (fd_bonovo < 0) {
+    Logger::Error("Could not activate audio since fd_bonovo is invalid.");
     return false;
   }
-  return (ioctl(fd_bonovo, IOCTL_HANDLE_CODEC_SWITCH_SRC, codec_mode) == 0);
+  int res = ioctl(fd_bonovo, IOCTL_HANDLE_CODEC_SWITCH_SRC, codec_mode);
+  if (res != 0) {
+    snprintf(buffer, sizeof(buffer), "Could not ioctl. res=%d", res);
+    Logger::Error(buffer);
+
+    return false;
+  }
+  return true;
 }
 
 bool Radio::seek_stop() {
@@ -169,6 +201,10 @@ bool Radio::seek_stop() {
 }
 
 bool Radio::seek_start(bool up) {
+  if(m_LastSeekDirection != up)
+    setFrequency(m_Frequency);
+  m_LastSeekDirection = up;
+
   const int bits = (up) ? 0x03 : 0x02;
   if (!send_command(CMD_RADIO_START_SEARCH, bits, 0))
       return false;
@@ -203,18 +239,23 @@ bool Radio::close_dev() {
 }
 
 bool Radio::open_dev() {
-  if (fd_radio = open(RADIO_DEV_NODE, O_RDWR | O_NOCTTY | O_NONBLOCK) < 0) {
+  fd_radio = open(RADIO_DEV_NODE, O_RDWR | O_NOCTTY | O_NONBLOCK);
+  if (fd_radio < 0) {
+    Logger::Error("Could not open radio dev node");
     return false;
   }
-
-  if (fd_bonovo = open(AUDIO_CTRL_NODE, O_RDWR | O_NOCTTY | O_NONBLOCK) < 0) {
+  fd_bonovo = open(AUDIO_CTRL_NODE, O_RDWR | O_NOCTTY | O_NONBLOCK);
+  if (fd_bonovo < 0) {
+    Logger::Error("Could not open bonovo dev node");
     return false;
   }
 
   if (!activeAudio(CODEC_LEVEL_RADIO)) {
+    Logger::Error("Could not activate audio");
     return false;
   }
 
+  Logger::Debug("Opened dev");
   return true;
 }
 

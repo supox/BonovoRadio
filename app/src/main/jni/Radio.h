@@ -55,4 +55,5 @@ class Radio : public IRadio {
   Band m_band;
   int m_Frequency;
   int m_Volume;
+  bool m_LastSeekDirection;
 };

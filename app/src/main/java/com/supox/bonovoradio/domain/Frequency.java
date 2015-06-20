@@ -1,7 +1,7 @@
 package com.supox.bonovoradio.domain;
 
 public class Frequency {
-    private static final int MHZ_FREQ_INC = 50;
+    private static final int MHZ_FREQ_INC = 5;
     private final int mFrequency;
 
     public Frequency(String frequency) {

@@ -44,8 +44,9 @@ public class RadioService extends Service implements IRadio, AudioManager.OnAudi
     private Gson gson = new Gson();
     private PresetsManager mPresetsManager;
     private Timer mPollTimer;
-    private static final int poll_ms = 1000;
-    private static final int wait_ms = 1000;
+    private static final int POLL_MS = 1000;
+    private static final int WAIT_MS = 1000;
+    private static final int SHORT_WAIT_MS = 100;
     private static final String TAG = "RadioService";
 
     @Override
@@ -63,7 +64,7 @@ public class RadioService extends Service implements IRadio, AudioManager.OnAudi
                 AudioManager.AUDIOFOCUS_GAIN);
 
         mPollTimer = new Timer("Poll", true);
-        mPollTimer.schedule(new PollTask(), wait_ms, poll_ms);
+        mPollTimer.schedule(new PollTask(), WAIT_MS, POLL_MS);
     }
 
     private void restoreState() {
@@ -78,6 +79,11 @@ public class RadioService extends Service implements IRadio, AudioManager.OnAudi
                 setBand(mState.band);
             setFrequency(mState.frequency);
             setVolume(mState.volume);
+        } else {
+            setBand(Band.EU);
+            setFrequency(new Frequency(9000));
+            setVolume(70);
+            setSeekState(SeekState.NotSeek);
         }
     }
 
@@ -180,6 +186,10 @@ public class RadioService extends Service implements IRadio, AudioManager.OnAudi
                 break;
         }
         mState.seekState = state;
+
+        mPollTimer.cancel();
+        mPollTimer.schedule(new PollTask(), SHORT_WAIT_MS, POLL_MS);
+
         return state;
     }
 
