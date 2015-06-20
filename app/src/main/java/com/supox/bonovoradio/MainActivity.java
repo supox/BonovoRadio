@@ -27,6 +27,7 @@ import android.widget.TextView;
 
 import com.supox.bonovoradio.api.IRadio;
 import com.supox.bonovoradio.api.IRadioListener;
+import com.supox.bonovoradio.domain.Frequency;
 import com.supox.bonovoradio.domain.Preset;
 import com.supox.bonovoradio.domain.RadioState;
 import com.supox.bonovoradio.domain.SeekState;
@@ -368,12 +369,16 @@ public class MainActivity extends Activity implements ServiceConnection {
         AlertDialog.Builder builder = new AlertDialog.Builder (this);
         builder.setTitle("Preset Rename");
         builder.setView(editTextView);
-        final EditText presetEditText = (EditText) editTextView.findViewById(R.id.edit_text);
-        presetEditText.setText(mRadio.getPresets()[presetIndex].name);
+        final EditText presetNameEditText = (EditText) editTextView.findViewById(R.id.et_name);
+        presetNameEditText.setText(mRadio.getPresets()[presetIndex].name);
+        final EditText presetFreqEditText = (EditText) editTextView.findViewById(R.id.et_freq);
+        presetFreqEditText.setText(mRadio.getPresets()[presetIndex].freq.toMHzString());
         builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int whichButton) {
-                mRadio.renamePreset(presetIndex, presetEditText.getText().toString());
+                mRadio.setPreset(presetIndex,
+                        new Preset(presetNameEditText.getText().toString(),
+                                new Frequency(presetFreqEditText.getText().toString())));
             }
         });
         builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {

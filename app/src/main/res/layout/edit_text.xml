@@ -1,8 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
-<EditText xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:textAppearance="?android:attr/textAppearanceMedium"
-    android:hint = "Enter a name"
-    android:singleLine="true"
-    android:id="@+id/edit_text"/>
+    android:orientation="vertical">
+
+    <EditText
+        android:id="@+id/et_freq"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Select frequency"
+        android:singleLine="true"
+        android:numeric="decimal"
+        android:textAppearance="?android:attr/textAppearanceMedium" />
+
+    <EditText
+        android:id="@+id/et_name"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Enter a name"
+        android:singleLine="true"
+        android:textAppearance="?android:attr/textAppearanceMedium" />
+</LinearLayout>

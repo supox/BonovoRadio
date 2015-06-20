@@ -337,6 +337,13 @@ public class RadioService extends Service implements IRadio, AudioManager.OnAudi
     }
 
     @Override
+    public void setPreset(int presetIndex, Preset preset) {
+        mPresetsManager.savePreset(presetIndex, preset);
+        if (mListener != null)
+            mListener.onPresetsChanged(getPresets());
+    }
+
+    @Override
     public Preset[] getPresets() {
         return mPresetsManager.getPresets().toArray(new Preset[0]);
     }

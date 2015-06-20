@@ -49,16 +49,14 @@ public interface IRadio {
     void prevStation();
 
     void setCurrentPreset(int index);
-
     void saveCurrentAsPreset(int presetIndex);
-
     void deletePreset(int presetIndex);
-
+    void renamePreset(int presetIndex, String name);
+    void setPreset(int presetIndex, Preset preset);
     Preset[] getPresets();
 
     void stepUp();
 
     void stepDown();
 
-    void renamePreset(int presetIndex, String name);
 }
