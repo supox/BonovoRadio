@@ -65,6 +65,8 @@ public class RadioService extends Service implements IRadio, AudioManager.OnAudi
 
         mPollTimer = new Timer("Poll", true);
         mPollTimer.schedule(new PollTask(), WAIT_MS, POLL_MS);
+
+        startForeground(NOTIFICATION_ID, getNotification());
     }
 
     private void restoreState() {
@@ -73,7 +75,7 @@ public class RadioService extends Service implements IRadio, AudioManager.OnAudi
         if (settings.contains("RadioState")) {
             mState = gson.fromJson(settings.getString("RadioState", ""), mState.getClass());
 
-            if(mState.band == null)
+            if (mState.band == null)
                 setBand(Band.EU);
             else
                 setBand(mState.band);
@@ -236,15 +238,15 @@ public class RadioService extends Service implements IRadio, AudioManager.OnAudi
     @Override
     public byte[] readRDS() {
         ByteArrayOutputStream stream = new ByteArrayOutputStream();
-        while(stream.size() < 128) {
+        while (stream.size() < 128) {
             int ch = mRadio.readRDS();
-            if(ch < 0)
+            if (ch < 0)
                 break;
-            stream.write((byte)ch);
+            stream.write((byte) ch);
         }
 
         byte[] result = stream.toByteArray();
-        if(result.length > 0) {
+        if (result.length > 0) {
             Log.d(TAG, "Got RDS data. Length = " + result.length);
         }
         return result;
@@ -382,8 +384,12 @@ public class RadioService extends Service implements IRadio, AudioManager.OnAudi
         return Service.START_STICKY;
     }
 
-
     private void updateNotification() {
+        NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        mNotificationManager.notify(NOTIFICATION_ID, getNotification());
+    }
+
+    private Notification getNotification() {
         PendingIntent pIntent = PendingIntent.getActivity(
                 this,
                 0,
@@ -412,9 +418,10 @@ public class RadioService extends Service implements IRadio, AudioManager.OnAudi
         String freq = "";
         try {
             freq = mState.frequency.toMHzString();
-        } catch(NullPointerException ex) {}
+        } catch (NullPointerException ex) {
+        }
 
-        Notification notification = new Notification.Builder(this)
+        return new Notification.Builder(this)
                 .setContentTitle("Radio")
                 .setContentText(freq)
                 .setSmallIcon(R.drawable.ic_launcher)
@@ -422,7 +429,6 @@ public class RadioService extends Service implements IRadio, AudioManager.OnAudi
                 .addAction(R.drawable.btn_rw, "", pPrevIntent)
                 .addAction(R.drawable.btn_ff, "", pNextIntent)
                 .build();
-        startForeground(NOTIFICATION_ID, notification);
     }
 
     @Override
