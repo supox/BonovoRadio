@@ -79,7 +79,7 @@ public final class PresetsManager {
     public Preset nextPreset(boolean up) {
         int presetIndex = m_currentIndex;
         for (int index = 0; index < mPresets.size(); index++) {
-            presetIndex = (presetIndex + (up ? 1 : -1) % mPresets.size());
+            presetIndex = (presetIndex + (up ? 1 : -1)) % mPresets.size();
             if (presetIndex < 0) presetIndex += mPresets.size();
             if (getPreset(presetIndex).isValid) {
                 return setActivePreset(presetIndex);

@@ -28,7 +28,7 @@
 
         <service
             android:name=".service.RadioService"
-            android:exported="false" />
+            android:exported="true" />
     </application>
 
 </manifest>
