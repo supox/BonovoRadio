@@ -27,14 +27,13 @@ import com.supox.bonovoradio.domain.SeekState;
 import com.supox.bonovoradio.domain.TunerState;
 
 import java.io.ByteArrayOutputStream;
-import java.nio.ByteBuffer;
 import java.util.Timer;
 import java.util.TimerTask;
 
 public class RadioService extends Service implements IRadio, AudioManager.OnAudioFocusChangeListener {
+    public final static String ACTION_PREVIOUS = "ACTION_PREVIOUS";
+    public final static String ACTION_NEXT = "ACTION_NEXT";
     private final static int NOTIFICATION_ID = 0x1234;
-    private final static String ACTION_PREVIOUS = "ACTION_PREVIOUS";
-    private final static String ACTION_NEXT = "ACTION_NEXT";
 
     private IBinder mBinder = new LocalBinder();
     private NativeRadio mRadio = new NativeRadio();
@@ -341,7 +340,6 @@ public class RadioService extends Service implements IRadio, AudioManager.OnAudi
         mPresetsManager.renamePreset(presetIndex, name);
         if (mListener != null)
             mListener.onPresetsChanged(getPresets());
-
     }
 
     @Override

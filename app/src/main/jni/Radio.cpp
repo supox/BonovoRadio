@@ -86,15 +86,15 @@ void Radio::setRDSState(State state) {
 
   switch(state) {
   case START:
-    // if(ioctl(fd_rds, RDS_IOCTL_START_DATA) == 0) {
-    if(send_command(CMD_RADIO_RDS_ON_OFF, 0x01, 0)) {
+    if(ioctl(fd_rds, RDS_IOCTL_START_DATA) == 0 &&
+      send_command(CMD_RADIO_RDS_ON_OFF, 0x01)) {
       Logger::Debug("Starting RDS");
       m_RDSState = state;
       }
     break;
     case STOP: default:
-    // if(ioctl(fd_rds, RDS_IOCTL_STOP_DATA) == 0) {
-    if(send_command(CMD_RADIO_RDS_ON_OFF, 0x00, 0)) {
+    if(ioctl(fd_rds, RDS_IOCTL_STOP_DATA) == 0 &&
+      send_command(CMD_RADIO_RDS_ON_OFF, 0x00)) {
       Logger::Debug("Stopping RDS");
       m_RDSState = state;
       }

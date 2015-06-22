@@ -36,7 +36,7 @@ class Radio : public IRadio {
   };
 
   unsigned int checkSum(unsigned char* cmdBuf, int size) const;
-  bool send_command(const char cmd, const char param1, const char param2) const;
+  bool send_command(const char cmd, const char param1, const char param2 = 0) const;
   bool band_set(int low, int high, int band, int step_len);
   bool activeAudio(CODEC_Level codec_mode);
 

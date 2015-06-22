@@ -16,18 +16,14 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup.LayoutParams;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
-import android.widget.PopupWindow;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
 import com.supox.bonovoradio.api.IRadio;
 import com.supox.bonovoradio.api.IRadioListener;
-import com.supox.bonovoradio.domain.Frequency;
 import com.supox.bonovoradio.domain.Preset;
 import com.supox.bonovoradio.domain.RadioState;
 import com.supox.bonovoradio.domain.SeekState;
@@ -371,14 +367,12 @@ public class MainActivity extends Activity implements ServiceConnection {
         builder.setView(editTextView);
         final EditText presetNameEditText = (EditText) editTextView.findViewById(R.id.et_name);
         presetNameEditText.setText(mRadio.getPresets()[presetIndex].name);
-        final EditText presetFreqEditText = (EditText) editTextView.findViewById(R.id.et_freq);
-        presetFreqEditText.setText(mRadio.getPresets()[presetIndex].freq.toMHzString());
+        // final EditText presetFreqEditText = (EditText) editTextView.findViewById(R.id.et_freq);
+        // presetFreqEditText.setText(mRadio.getPresets()[presetIndex].freq.toMHzString());
         builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int whichButton) {
-                mRadio.setPreset(presetIndex,
-                        new Preset(presetNameEditText.getText().toString(),
-                                new Frequency(presetFreqEditText.getText().toString())));
+                mRadio.renamePreset(presetIndex, presetNameEditText.getText().toString());
             }
         });
         builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
