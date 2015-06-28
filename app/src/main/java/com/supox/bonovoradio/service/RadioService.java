@@ -48,11 +48,13 @@ public class RadioService extends Service implements IRadio, AudioManager.OnAudi
     private static final int WAIT_MS = 1000;
     private static final int SHORT_WAIT_MS = 100;
     private static final String TAG = "RadioService";
+    private Notification.Builder mBuilder;
 
     @Override
     public void onCreate() {
         super.onCreate();
         settings = getSharedPreferences("RadioPreferences", MODE_PRIVATE);
+        mBuilder = new Notification.Builder(this);
 
         restoreState();
 
@@ -421,7 +423,7 @@ public class RadioService extends Service implements IRadio, AudioManager.OnAudi
         } catch (NullPointerException ex) {
         }
 
-        return new Notification.Builder(this)
+        return mBuilder
                 .setContentTitle("Radio")
                 .setContentText(freq)
                 .setSmallIcon(R.drawable.ic_launcher)

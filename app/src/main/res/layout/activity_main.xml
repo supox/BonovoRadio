@@ -300,6 +300,20 @@
 
         </LinearLayout>
 
+        <!-- Frequency dial -->
+        <ImageView android:id="@+id/frequency_bar"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_centerInParent="true"
+            android:contentDescription="Frequency"
+            android:src="@drawable/dial_frequency" />
+        <ImageView android:id="@+id/frequency_needle"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_centerInParent="true"
+            android:contentDescription="Needle"
+            android:src="@drawable/freq_dial_needle" />
+
         <!-- presets right -->
         <LinearLayout
             android:layout_width="wrap_content"

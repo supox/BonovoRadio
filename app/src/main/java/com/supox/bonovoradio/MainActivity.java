@@ -24,6 +24,7 @@ import android.widget.TextView;
 
 import com.supox.bonovoradio.api.IRadio;
 import com.supox.bonovoradio.api.IRadioListener;
+import com.supox.bonovoradio.domain.Frequency;
 import com.supox.bonovoradio.domain.Preset;
 import com.supox.bonovoradio.domain.RadioState;
 import com.supox.bonovoradio.domain.SeekState;
@@ -49,6 +50,7 @@ public class MainActivity extends Activity implements ServiceConnection {
     private BroadcastReceiver mBroadcastReceiver;
     private final SimpleDateFormat sdfWatchTime = new SimpleDateFormat("HH:mm");
     private TextView mClockTV;
+    private FrequencyDial mFrequencyDialer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -227,6 +229,19 @@ public class MainActivity extends Activity implements ServiceConnection {
             public void onStopTrackingTouch(SeekBar seekBar) {
             }
         });
+
+
+        mFrequencyDialer = new FrequencyDial(findViewById(R.id.frequency_needle));
+        mFrequencyDialer.setListener(new FrequencyDial.Listener() {
+            @Override
+            public void onFreqChanged(int freq) {
+                try {
+                    mRadio.setFrequency(new Frequency(freq));
+                } catch(NullPointerException ex) {
+                }
+            }
+        });
+
     }
 
     private View findViewByName(String resName) {
@@ -305,6 +320,7 @@ public class MainActivity extends Activity implements ServiceConnection {
             mPowerButton.setImageResource(R.drawable.power_off);
         }
 
+        mFrequencyDialer.setFrequency(mState.frequency.toInt());
     }
 
     private void updatePresets(Preset[] presets) {
