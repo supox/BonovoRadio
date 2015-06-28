@@ -314,7 +314,7 @@ public class MainActivity extends Activity implements ServiceConnection {
         else
             mPausePlayButton.setImageResource(R.drawable.sel_pause);
 
-        if (mState.tunerState == TunerState.Stop) {
+        if (mState.tunerState == TunerState.Start) {
             mPowerButton.setImageResource(R.drawable.power_on);
         } else {
             mPowerButton.setImageResource(R.drawable.power_off);

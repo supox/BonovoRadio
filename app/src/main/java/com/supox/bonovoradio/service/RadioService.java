@@ -49,6 +49,7 @@ public class RadioService extends Service implements IRadio, AudioManager.OnAudi
     private static final int SHORT_WAIT_MS = 100;
     private static final String TAG = "RadioService";
     private Notification.Builder mBuilder;
+    private String mLastNotificationFreq = "none";
 
     @Override
     public void onCreate() {
@@ -387,11 +388,38 @@ public class RadioService extends Service implements IRadio, AudioManager.OnAudi
     }
 
     private void updateNotification() {
+        if(!notificationUpdateNeeded())
+            return;
+
         NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         mNotificationManager.notify(NOTIFICATION_ID, getNotification());
     }
 
+    private boolean notificationUpdateNeeded() {
+        String freq = getCurrentFreqName();
+
+        return !mLastNotificationFreq.equals(freq);
+
+    }
+
+    private String getCurrentFreqName() {
+        String freq = "";
+        try {
+            freq = mState.frequency.toMHzString();
+            Preset preset = mPresetsManager.getPreset(mPresetsManager.getActivePresetIndex());
+            if(preset.freq.toInt() == mState.frequency.toInt()) {
+                freq = preset.name;
+            }
+        } catch (NullPointerException ex) {
+        }
+        return freq;
+    }
+
     private Notification getNotification() {
+        String freq = getCurrentFreqName();
+
+        mLastNotificationFreq = freq;
+
         PendingIntent pIntent = PendingIntent.getActivity(
                 this,
                 0,
@@ -417,12 +445,6 @@ public class RadioService extends Service implements IRadio, AudioManager.OnAudi
                 PendingIntent.FLAG_UPDATE_CURRENT
         );
 
-        String freq = "";
-        try {
-            freq = mState.frequency.toMHzString();
-        } catch (NullPointerException ex) {
-        }
-
         return mBuilder
                 .setContentTitle("Radio")
                 .setContentText(freq)
@@ -430,6 +452,7 @@ public class RadioService extends Service implements IRadio, AudioManager.OnAudi
                 .setContentIntent(pIntent)
                 .addAction(R.drawable.btn_rw, "", pPrevIntent)
                 .addAction(R.drawable.btn_ff, "", pNextIntent)
+                .setOngoing(true)
                 .build();
     }
 
