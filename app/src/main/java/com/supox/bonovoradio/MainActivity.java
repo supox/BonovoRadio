@@ -92,7 +92,7 @@ public class MainActivity extends Activity implements ServiceConnection {
     protected void onResume() {
         super.onResume();
 
-	bindToRadioService();
+        bindToRadioService();
     }
 
     private void bindToRadioService() {

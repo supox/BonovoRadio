@@ -51,19 +51,24 @@ public class RadioService extends Service implements IRadio, AudioManager.OnAudi
     private Timer mPollTimer;
     private Notification.Builder mBuilder;
     private String mLastNotificationFreq = "none";
+
     private BroadcastReceiver powerStateReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            if (intent.getAction().equals(
-                    "android.intent.action.BONOVO_SLEEP_KEY")) {
-                setTunerState(TunerState.Stop);
-            } else if (intent.getAction().equals("android.intent.action.BONOVO_WAKEUP_KEY")) {
-                setTunerState(TunerState.Start);
-                setFrequency(mState.frequency);
-            } else if (intent.getAction().equals("android.intent.action.BONOVO_RADIO_TURNDOWN")) {
-                prevStation();
-            } else if (intent.getAction().equals("android.intent.action.BONOVO_RADIO_TURNUP")) {
-                nextStation();
+            switch(intent.getAction()) {
+                case "android.intent.action.BONOVO_SLEEP_KEY":
+                    setTunerState(TunerState.Stop);
+                    break;
+                case "android.intent.action.BONOVO_WAKEUP_KEY":
+                    setTunerState(TunerState.Start);
+                    setFrequency(mState.frequency);
+                    break;
+                case "android.intent.action.BONOVO_RADIO_TURNDOWN":
+                    prevStation();
+                    break;
+                case "android.intent.action.BONOVO_RADIO_TURNUP":
+                    nextStation();
+                    break;
             }
         }
     };
@@ -521,6 +526,7 @@ public class RadioService extends Service implements IRadio, AudioManager.OnAudi
         myIntentFilter.addAction("android.intent.action.BONOVO_WAKEUP_KEY");
         myIntentFilter.addAction("android.intent.action.BONOVO_RADIO_TURNDOWN");
         myIntentFilter.addAction("android.intent.action.BONOVO_RADIO_TURNUP");
+        myIntentFilter.addAction(Intent.ACTION_BOOT_COMPLETED);
         return myIntentFilter;
     }
 

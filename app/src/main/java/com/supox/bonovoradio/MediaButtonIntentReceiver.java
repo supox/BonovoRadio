@@ -9,6 +9,8 @@ import com.supox.bonovoradio.service.RadioService;
 
 public class MediaButtonIntentReceiver extends BroadcastReceiver {
 
+    private static final boolean mStartOnBoot = true;
+
     @Override
     public void onReceive(Context context, Intent intent) {
         if (intent.getAction().equals(Intent.ACTION_MEDIA_BUTTON)) {
@@ -40,6 +42,11 @@ public class MediaButtonIntentReceiver extends BroadcastReceiver {
             newActivityIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             newActivityIntent.setAction("com.supox.bonovoradio.MainActivity");
             context.startActivity(newActivityIntent);
+        } else if (intent.getAction().equals(Intent.ACTION_BOOT_COMPLETED)) {
+            if (mStartOnBoot) {
+                Intent myIntent = new Intent(context, RadioService.class);
+                context.startService(myIntent);
+            }
         }
     }
 }

@@ -23,8 +23,12 @@
             <intent-filter>
                 <action android:name="android.intent.action.MEDIA_BUTTON"></action>
                 <action android:name="android.intent.action.BONOVO_RADIO_KEY"></action>
+                <action android:name="android.intent.action.BOOT_COMPLETED"/>
             </intent-filter>
         </receiver>
+
+
+        <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
         <service
             android:name=".service.RadioService"
