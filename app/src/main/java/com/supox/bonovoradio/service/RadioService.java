@@ -36,7 +36,10 @@ public class RadioService extends Service implements IRadio, AudioManager.OnAudi
     public final static String ACTION_PREVIOUS = "ACTION_PREVIOUS";
     public final static String ACTION_NEXT = "ACTION_NEXT";
     private final static int NOTIFICATION_ID = 0x1234;
-
+    private static final int POLL_MS = 1000;
+    private static final int WAIT_MS = 1000;
+    private static final int SHORT_WAIT_MS = 100;
+    private static final String TAG = "RadioService";
     private IBinder mBinder = new LocalBinder();
     private NativeRadio mRadio = new NativeRadio();
     private AudioManager mAudioManager;
@@ -46,11 +49,24 @@ public class RadioService extends Service implements IRadio, AudioManager.OnAudi
     private Gson gson = new Gson();
     private PresetsManager mPresetsManager;
     private Timer mPollTimer;
-    private static final int POLL_MS = 1000;
-    private static final int WAIT_MS = 1000;
-    private static final int SHORT_WAIT_MS = 100;
-    private static final String TAG = "RadioService";
     private Notification.Builder mBuilder;
+    private String mLastNotificationFreq = "none";
+    private BroadcastReceiver powerStateReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (intent.getAction().equals(
+                    "android.intent.action.BONOVO_SLEEP_KEY")) {
+                setTunerState(TunerState.Stop);
+            } else if (intent.getAction().equals("android.intent.action.BONOVO_WAKEUP_KEY")) {
+                setTunerState(TunerState.Start);
+                setFrequency(mState.frequency);
+            } else if (intent.getAction().equals("android.intent.action.BONOVO_RADIO_TURNDOWN")) {
+                prevStation();
+            } else if (intent.getAction().equals("android.intent.action.BONOVO_RADIO_TURNUP")) {
+                nextStation();
+            }
+        }
+    };
 
     @Override
     public void onCreate() {
@@ -397,11 +413,6 @@ public class RadioService extends Service implements IRadio, AudioManager.OnAudi
         return Service.START_STICKY;
     }
 
-    private void updateNotification() {
-        NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-        mNotificationManager.notify(NOTIFICATION_ID, getNotification());
-    }
-
     private Notification.Builder createBuilder() {
         PendingIntent pIntent = PendingIntent.getActivity(
                 this,
@@ -422,12 +433,12 @@ public class RadioService extends Service implements IRadio, AudioManager.OnAudi
         Intent nextIntent = new Intent(this, this.getClass());
         nextIntent.setAction(ACTION_NEXT);
         PendingIntent pNextIntent = PendingIntent.getService(
+
                 this,
                 2,
                 nextIntent,
                 PendingIntent.FLAG_UPDATE_CURRENT
         );
-
 
         Notification.Builder builder = new Notification.Builder(this);
         builder.setContentTitle("Radio")
@@ -438,12 +449,38 @@ public class RadioService extends Service implements IRadio, AudioManager.OnAudi
         return builder;
     }
 
-    private Notification getNotification() {
+    private void updateNotification() {
+        if(!notificationUpdateNeeded())
+            return;
+
+        NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        mNotificationManager.notify(NOTIFICATION_ID, getNotification());
+    }
+
+    private boolean notificationUpdateNeeded() {
+        String freq = getCurrentFreqName();
+
+        return !mLastNotificationFreq.equals(freq);
+
+    }
+
+    private String getCurrentFreqName() {
         String freq = "";
         try {
             freq = mState.frequency.toMHzString();
+            Preset preset = mPresetsManager.getPreset(mPresetsManager.getActivePresetIndex());
+            if(preset.freq.toInt() == mState.frequency.toInt()) {
+                freq = preset.name;
+            }
         } catch (NullPointerException ex) {
         }
+        return freq;
+    }
+
+    private Notification getNotification() {
+        String freq = getCurrentFreqName();
+
+        mLastNotificationFreq = freq;
 
         return mBuilder.setContentText(freq).build();
     }
@@ -472,17 +509,25 @@ public class RadioService extends Service implements IRadio, AudioManager.OnAudi
         }
     }
 
-    public class LocalBinder extends Binder {
-        public RadioService getServerInstance() {
-            return RadioService.this;
-        }
-    }
-
     private void broadcastState() {
         if (mListener != null) {
             mListener.onStateChanged(mState);
         }
         updateNotification();
+    }
+
+    private IntentFilter getRadioStateIntentFilter() {
+        IntentFilter myIntentFilter = new IntentFilter("android.intent.action.BONOVO_SLEEP_KEY");
+        myIntentFilter.addAction("android.intent.action.BONOVO_WAKEUP_KEY");
+        myIntentFilter.addAction("android.intent.action.BONOVO_RADIO_TURNDOWN");
+        myIntentFilter.addAction("android.intent.action.BONOVO_RADIO_TURNUP");
+        return myIntentFilter;
+    }
+
+    public class LocalBinder extends Binder {
+        public RadioService getServerInstance() {
+            return RadioService.this;
+        }
     }
 
     private class PollTask extends TimerTask {
@@ -500,31 +545,6 @@ public class RadioService extends Service implements IRadio, AudioManager.OnAudi
             getBand();
             broadcastState();
         }
-    }
-
-    private BroadcastReceiver powerStateReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            if (intent.getAction().equals(
-                    "android.intent.action.BONOVO_SLEEP_KEY")) {
-                setTunerState(TunerState.Stop);
-            } else if (intent.getAction().equals("android.intent.action.BONOVO_WAKEUP_KEY")) {
-                setTunerState(TunerState.Start);
-                setFrequency(mState.frequency);
-            } else if (intent.getAction().equals("android.intent.action.BONOVO_RADIO_TURNDOWN")) {
-                prevStation();
-            } else if (intent.getAction().equals("android.intent.action.BONOVO_RADIO_TURNUP")) {
-                nextStation();
-            }
-        }
-    };
-
-    private IntentFilter getRadioStateIntentFilter() {
-        IntentFilter myIntentFilter = new IntentFilter("android.intent.action.BONOVO_SLEEP_KEY");
-        myIntentFilter.addAction("android.intent.action.BONOVO_WAKEUP_KEY");
-        myIntentFilter.addAction("android.intent.action.BONOVO_RADIO_TURNDOWN");
-        myIntentFilter.addAction("android.intent.action.BONOVO_RADIO_TURNUP");
-        return myIntentFilter;
     }
 
 }
