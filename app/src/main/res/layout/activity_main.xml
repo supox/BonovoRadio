@@ -10,7 +10,8 @@
         android:layout_height="0dip"
         android:layout_gravity="center"
         android:layout_weight="2"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        android:visibility="gone">
 
         <!-- Volume -->
         <ImageView
@@ -205,7 +206,8 @@
             android:layout_alignParentBottom="true"
             android:layout_marginBottom="20dp"
             android:textSize="30sp"
-            android:text="00:00" />
+            android:text="00:00"
+            android:visibility="gone" />
         <!-- presets left -->
         <LinearLayout
             android:layout_width="wrap_content"
@@ -299,6 +301,25 @@
             </FrameLayout>
 
         </LinearLayout>
+
+        <!-- Frequency dial -->
+        <RelativeLayout android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_centerInParent="true"
+            android:layout_margin="20sp">
+        <ImageView android:id="@+id/frequency_bar"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_centerInParent="true"
+            android:contentDescription="Frequency"
+            android:src="@drawable/dial_frequency" />
+        <ImageView android:id="@+id/frequency_needle"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_centerInParent="true"
+            android:contentDescription="Needle"
+            android:src="@drawable/freq_dial_needle" />
+        </RelativeLayout>
 
         <!-- presets right -->
         <LinearLayout

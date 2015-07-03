@@ -2,8 +2,8 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/BonovoRadio.iml" filepath="$PROJECT_DIR$/BonovoRadio.iml" />
-      <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
+      <module fileurl="file:///media/supox/03b7361c-c8c7-4398-8cc2-5b3c87e0ec96/Documents/StudioProjects/BonovoRadio/BonovoRadio.iml" filepath="/media/supox/03b7361c-c8c7-4398-8cc2-5b3c87e0ec96/Documents/StudioProjects/BonovoRadio/BonovoRadio.iml" />
+      <module fileurl="file:///media/supox/03b7361c-c8c7-4398-8cc2-5b3c87e0ec96/Documents/StudioProjects/BonovoRadio/app/app.iml" filepath="/media/supox/03b7361c-c8c7-4398-8cc2-5b3c87e0ec96/Documents/StudioProjects/BonovoRadio/app/app.iml" />
     </modules>
   </component>
 </project>

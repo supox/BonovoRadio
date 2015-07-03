@@ -24,6 +24,7 @@ import android.widget.TextView;
 
 import com.supox.bonovoradio.api.IRadio;
 import com.supox.bonovoradio.api.IRadioListener;
+import com.supox.bonovoradio.domain.Frequency;
 import com.supox.bonovoradio.domain.Preset;
 import com.supox.bonovoradio.domain.RadioState;
 import com.supox.bonovoradio.domain.SeekState;
@@ -49,6 +50,7 @@ public class MainActivity extends Activity implements ServiceConnection {
     private BroadcastReceiver mBroadcastReceiver;
     private final SimpleDateFormat sdfWatchTime = new SimpleDateFormat("HH:mm");
     private TextView mClockTV;
+    private FrequencyDial mFrequencyDialer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -90,6 +92,10 @@ public class MainActivity extends Activity implements ServiceConnection {
     protected void onResume() {
         super.onResume();
 
+	bindToRadioService();
+    }
+
+    private void bindToRadioService() {
         Intent serviceIntent = new Intent(this, RadioService.class);
         this.startService(serviceIntent);
         bindService(serviceIntent, this, BIND_AUTO_CREATE);
@@ -163,10 +169,12 @@ public class MainActivity extends Activity implements ServiceConnection {
             @Override
             public void onClick(View v) {
                 try {
-                    if (mRadio.getTunerState() == TunerState.Start)
+                    if (mRadio.getTunerState() == TunerState.Start) {
                         mRadio.setTunerState(TunerState.Stop);
-                    else
-                        mRadio.setTunerState(TunerState.Start);
+		    } else {
+			bindToRadioService();
+                        // mRadio.setTunerState(TunerState.Start);
+		    }
                 } catch (NullPointerException ex) {
                 }
             }
@@ -227,6 +235,19 @@ public class MainActivity extends Activity implements ServiceConnection {
             public void onStopTrackingTouch(SeekBar seekBar) {
             }
         });
+
+
+        mFrequencyDialer = new FrequencyDial(findViewById(R.id.frequency_needle));
+        mFrequencyDialer.setListener(new FrequencyDial.Listener() {
+            @Override
+            public void onFreqChanged(int freq) {
+                try {
+                    mRadio.setFrequency(new Frequency(freq));
+                } catch(NullPointerException ex) {
+                }
+            }
+        });
+
     }
 
     private View findViewByName(String resName) {
@@ -305,6 +326,7 @@ public class MainActivity extends Activity implements ServiceConnection {
             mPowerButton.setImageResource(R.drawable.power_off);
         }
 
+        mFrequencyDialer.setFrequency(mState.frequency.toInt());
     }
 
     private void updatePresets(Preset[] presets) {

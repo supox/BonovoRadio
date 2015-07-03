@@ -4,8 +4,10 @@ import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.media.AudioManager;
 import android.os.Binder;
@@ -48,11 +50,13 @@ public class RadioService extends Service implements IRadio, AudioManager.OnAudi
     private static final int WAIT_MS = 1000;
     private static final int SHORT_WAIT_MS = 100;
     private static final String TAG = "RadioService";
+    private Notification.Builder mBuilder;
 
     @Override
     public void onCreate() {
         super.onCreate();
         settings = getSharedPreferences("RadioPreferences", MODE_PRIVATE);
+        mBuilder = createBuilder();
 
         restoreState();
 
@@ -62,6 +66,9 @@ public class RadioService extends Service implements IRadio, AudioManager.OnAudi
         mAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
         mAudioManager.requestAudioFocus(this, AudioManager.STREAM_MUSIC,
                 AudioManager.AUDIOFOCUS_GAIN);
+
+        // register to power state
+        this.registerReceiver(powerStateReceiver, getRadioStateIntentFilter());
 
         mPollTimer = new Timer("Poll", true);
         mPollTimer.schedule(new PollTask(), WAIT_MS, POLL_MS);
@@ -84,7 +91,7 @@ public class RadioService extends Service implements IRadio, AudioManager.OnAudi
         } else {
             setBand(Band.EU);
             setFrequency(new Frequency(9000));
-            setVolume(70);
+            setVolume(100);
             setSeekState(SeekState.NotSeek);
         }
     }
@@ -126,6 +133,9 @@ public class RadioService extends Service implements IRadio, AudioManager.OnAudi
 
     @Override
     public void setFrequency(Frequency freq) {
+        if(freq == null)
+            return;
+
         Log.d(TAG, "Setting frequency: " + freq.toMHzString());
 
         mState.frequency = freq;
@@ -134,6 +144,8 @@ public class RadioService extends Service implements IRadio, AudioManager.OnAudi
         setRDSState(RDSState.Start);
 
         broadcastState();
+
+        saveState();
     }
 
     @Override
@@ -293,6 +305,7 @@ public class RadioService extends Service implements IRadio, AudioManager.OnAudi
         mState.tunerState = state;
 
         broadcastState();
+        saveState();
     }
 
     @Override
@@ -389,7 +402,7 @@ public class RadioService extends Service implements IRadio, AudioManager.OnAudi
         mNotificationManager.notify(NOTIFICATION_ID, getNotification());
     }
 
-    private Notification getNotification() {
+    private Notification.Builder createBuilder() {
         PendingIntent pIntent = PendingIntent.getActivity(
                 this,
                 0,
@@ -415,20 +428,24 @@ public class RadioService extends Service implements IRadio, AudioManager.OnAudi
                 PendingIntent.FLAG_UPDATE_CURRENT
         );
 
+
+        Notification.Builder builder = new Notification.Builder(this);
+        builder.setContentTitle("Radio")
+                .setSmallIcon(R.drawable.ic_launcher)
+                .setContentIntent(pIntent)
+                .addAction(R.drawable.btn_rw, "", pPrevIntent)
+                .addAction(R.drawable.btn_ff, "", pNextIntent);
+        return builder;
+    }
+
+    private Notification getNotification() {
         String freq = "";
         try {
             freq = mState.frequency.toMHzString();
         } catch (NullPointerException ex) {
         }
 
-        return new Notification.Builder(this)
-                .setContentTitle("Radio")
-                .setContentText(freq)
-                .setSmallIcon(R.drawable.ic_launcher)
-                .setContentIntent(pIntent)
-                .addAction(R.drawable.btn_rw, "", pPrevIntent)
-                .addAction(R.drawable.btn_ff, "", pNextIntent)
-                .build();
+        return mBuilder.setContentText(freq).build();
     }
 
     @Override
@@ -484,4 +501,30 @@ public class RadioService extends Service implements IRadio, AudioManager.OnAudi
             broadcastState();
         }
     }
+
+    private BroadcastReceiver powerStateReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (intent.getAction().equals(
+                    "android.intent.action.BONOVO_SLEEP_KEY")) {
+                setTunerState(TunerState.Stop);
+            } else if (intent.getAction().equals("android.intent.action.BONOVO_WAKEUP_KEY")) {
+                setTunerState(TunerState.Start);
+                setFrequency(mState.frequency);
+            } else if (intent.getAction().equals("android.intent.action.BONOVO_RADIO_TURNDOWN")) {
+                prevStation();
+            } else if (intent.getAction().equals("android.intent.action.BONOVO_RADIO_TURNUP")) {
+                nextStation();
+            }
+        }
+    };
+
+    private IntentFilter getRadioStateIntentFilter() {
+        IntentFilter myIntentFilter = new IntentFilter("android.intent.action.BONOVO_SLEEP_KEY");
+        myIntentFilter.addAction("android.intent.action.BONOVO_WAKEUP_KEY");
+        myIntentFilter.addAction("android.intent.action.BONOVO_RADIO_TURNDOWN");
+        myIntentFilter.addAction("android.intent.action.BONOVO_RADIO_TURNUP");
+        return myIntentFilter;
+    }
+
 }

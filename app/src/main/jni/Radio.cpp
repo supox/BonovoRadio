@@ -20,7 +20,7 @@ Radio::Radio() :
   m_RDSState(STOP),
   m_band(FM_EU),
   m_Frequency(0),
-  m_Volume(30),
+  m_Volume(100),
   m_LastSeekDirection(false) {
 }
 
