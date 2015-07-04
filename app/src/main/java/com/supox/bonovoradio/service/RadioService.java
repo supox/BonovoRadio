@@ -53,6 +53,7 @@ public class RadioService extends Service implements IRadio, AudioManager.OnAudi
     private Timer mPollTimer;
     private Notification.Builder mBuilder;
     private String mLastNotificationFreq = "none";
+    private TunerState mLastTunerState = TunerState.Stop;
 
     private BroadcastReceiver powerStateReceiver = new BroadcastReceiver() {
         @Override
@@ -63,8 +64,6 @@ public class RadioService extends Service implements IRadio, AudioManager.OnAudi
                     break;
                 case "android.intent.action.BONOVO_WAKEUP_KEY":
                     setTunerState(TunerState.Start);
-                    setFrequency(mState.frequency);
-                    setVolume(100);
                     break;
                 case "android.intent.action.BONOVO_RADIO_TURNDOWN":
                     prevStation();
@@ -334,6 +333,9 @@ public class RadioService extends Service implements IRadio, AudioManager.OnAudi
         mRadio.setState(state == TunerState.Start);
         mState.tunerState = state;
 
+        setFrequency(mState.frequency);
+        setVolume(100);
+
         broadcastState();
         saveState();
     }
@@ -447,7 +449,6 @@ public class RadioService extends Service implements IRadio, AudioManager.OnAudi
         Intent nextIntent = new Intent(this, this.getClass());
         nextIntent.setAction(ACTION_NEXT);
         PendingIntent pNextIntent = PendingIntent.getService(
-
                 this,
                 2,
                 nextIntent,
@@ -459,7 +460,8 @@ public class RadioService extends Service implements IRadio, AudioManager.OnAudi
                 .setSmallIcon(R.drawable.ic_launcher)
                 .setContentIntent(pIntent)
                 .addAction(R.drawable.btn_rw, "", pPrevIntent)
-                .addAction(R.drawable.btn_ff, "", pNextIntent);
+                .addAction(R.drawable.btn_ff, "", pNextIntent)
+                .setPriority(Notification.PRIORITY_MAX); // To always show buttons
         return builder;
     }
 
@@ -468,13 +470,18 @@ public class RadioService extends Service implements IRadio, AudioManager.OnAudi
             return;
 
         NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-        mNotificationManager.notify(NOTIFICATION_ID, getNotification());
+        Notification notification = getNotification();
+        if (notification != null) {
+            mNotificationManager.notify(NOTIFICATION_ID, notification);
+        } else {
+            mNotificationManager.cancelAll();
+        }
     }
 
     private boolean notificationUpdateNeeded() {
         String freq = getCurrentFreqName();
 
-        return !mLastNotificationFreq.equals(freq);
+        return !mLastNotificationFreq.equals(freq) || !mLastTunerState.equals(mState.tunerState);
 
     }
 
@@ -495,8 +502,13 @@ public class RadioService extends Service implements IRadio, AudioManager.OnAudi
         String freq = getCurrentFreqName();
 
         mLastNotificationFreq = freq;
+        mLastTunerState = mState.tunerState;
 
-        return mBuilder.setContentText(freq).build();
+        if (mState.tunerState == TunerState.Start) {
+            return mBuilder.setContentText(freq).build();
+        } else {
+            return null;
+        }
     }
 
     @Override

@@ -2,12 +2,9 @@ package com.supox.bonovoradio;
 
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.content.BroadcastReceiver;
 import android.content.ComponentName;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.res.Resources;
 import android.os.Bundle;
@@ -31,9 +28,7 @@ import com.supox.bonovoradio.domain.SeekState;
 import com.supox.bonovoradio.domain.TunerState;
 import com.supox.bonovoradio.service.RadioService;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 
@@ -47,9 +42,6 @@ public class MainActivity extends Activity implements ServiceConnection {
     private ImageView mPausePlayButton;
     private ImageView mPowerButton;
 
-    private BroadcastReceiver mBroadcastReceiver;
-    private final SimpleDateFormat sdfWatchTime = new SimpleDateFormat("HH:mm");
-    private TextView mClockTV;
     private FrequencyDial mFrequencyDialer;
 
     @Override
@@ -58,29 +50,15 @@ public class MainActivity extends Activity implements ServiceConnection {
         setContentView(R.layout.activity_main);
     }
 
-
     @Override
     public void onStart() {
         super.onStart();
-        mBroadcastReceiver = new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context ctx, Intent intent) {
-                if (intent.getAction().compareTo(Intent.ACTION_TIME_TICK) == 0 && mClockTV != null) {
-                    mClockTV.setText(sdfWatchTime.format(new Date()));
-                }
-            }
-        };
-
-        registerReceiver(mBroadcastReceiver, new IntentFilter(Intent.ACTION_TIME_TICK));
     }
 
     @Override
     public void onStop() {
         super.onStop();
-        if (mBroadcastReceiver != null)
-            unregisterReceiver(mBroadcastReceiver);
     }
-
 
     @Override
     protected void onPause() {
@@ -102,9 +80,6 @@ public class MainActivity extends Activity implements ServiceConnection {
     }
 
     private void findViewElements() {
-        mClockTV = (TextView) findViewById(R.id.clock_tv);
-        mClockTV.setText(sdfWatchTime.format(new Date()));
-
         mFreqView = (TextView) findViewById(R.id.tv_freq);
         findViewById(R.id.iv_volume).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -171,10 +146,9 @@ public class MainActivity extends Activity implements ServiceConnection {
                 try {
                     if (mRadio.getTunerState() == TunerState.Start) {
                         mRadio.setTunerState(TunerState.Stop);
-		    } else {
-			bindToRadioService();
-                        // mRadio.setTunerState(TunerState.Start);
-		    }
+                    } else {
+                        mRadio.setTunerState(TunerState.Start);
+                    }
                 } catch (NullPointerException ex) {
                 }
             }

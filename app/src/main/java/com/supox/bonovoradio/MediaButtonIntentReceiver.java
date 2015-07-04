@@ -13,39 +13,43 @@ public class MediaButtonIntentReceiver extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
-        if (intent.getAction().equals(Intent.ACTION_MEDIA_BUTTON)) {
-            KeyEvent keyEvent = (KeyEvent) intent
-                    .getParcelableExtra(Intent.EXTRA_KEY_EVENT);
-            int keyCode = keyEvent.getKeyCode();
-            int keyAction = keyEvent.getAction();
+        switch (intent.getAction()) {
+            case Intent.ACTION_MEDIA_BUTTON:
+                handleMediaButton(context, intent);
+                break;
+            case "android.intent.action.BONOVO_RADIO_KEY":
+                Intent newActivityIntent = new Intent(context, MainActivity.class);
+                context.startActivity(newActivityIntent);
+                break;
+            case Intent.ACTION_BOOT_COMPLETED:
+                Intent newServiceIntent = new Intent(context, RadioService.class);
+                context.startService(newServiceIntent);
+                break;
+        }
+    }
 
-            Intent it;
-            if (keyAction == KeyEvent.ACTION_DOWN && keyEvent.getRepeatCount() == 0) {
-                switch (keyCode) {
-                    case KeyEvent.KEYCODE_MEDIA_NEXT:
-                        it = new Intent(context, RadioService.class);
-                        it.setAction(RadioService.ACTION_NEXT);
-                        context.startService(it);
-                        break;
-                    case KeyEvent.KEYCODE_MEDIA_PREVIOUS:
-                        it = new Intent(context, RadioService.class);
-                        it.setAction(RadioService.ACTION_PREVIOUS);
-                        context.startService(it);
-                        break;
-                }
-                if (isOrderedBroadcast()) {
-                    abortBroadcast();
-                }
+    private void handleMediaButton(Context context, Intent intent) {
+        KeyEvent keyEvent = (KeyEvent)
+                intent.getParcelableExtra(Intent.EXTRA_KEY_EVENT);
+        int keyCode = keyEvent.getKeyCode();
+        int keyAction = keyEvent.getAction();
+
+        Intent it;
+        if (keyAction == KeyEvent.ACTION_DOWN && keyEvent.getRepeatCount() == 0) {
+            switch (keyCode) {
+                case KeyEvent.KEYCODE_MEDIA_NEXT:
+                    it = new Intent(context, RadioService.class);
+                    it.setAction(RadioService.ACTION_NEXT);
+                    context.startService(it);
+                    break;
+                case KeyEvent.KEYCODE_MEDIA_PREVIOUS:
+                    it = new Intent(context, RadioService.class);
+                    it.setAction(RadioService.ACTION_PREVIOUS);
+                    context.startService(it);
+                    break;
             }
-        } else if (intent.getAction().equals("android.intent.action.BONOVO_RADIO_KEY")) {
-            Intent newActivityIntent = new Intent();
-            newActivityIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            newActivityIntent.setAction("com.supox.bonovoradio.MainActivity");
-            context.startActivity(newActivityIntent);
-        } else if (intent.getAction().equals(Intent.ACTION_BOOT_COMPLETED)) {
-            if (mStartOnBoot) {
-                Intent myIntent = new Intent(context, RadioService.class);
-                context.startService(myIntent);
+            if (isOrderedBroadcast()) {
+                abortBroadcast();
             }
         }
     }
