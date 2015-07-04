@@ -108,7 +108,10 @@ public class RadioService extends Service implements IRadio, AudioManager.OnAudi
             else
                 setBand(mState.band);
             setFrequency(mState.frequency);
-            setVolume(mState.volume);
+            if (mState.frequency != null || mState.volume != 0)
+                setVolume(mState.volume);
+            else
+                setVolume(100);
         } else {
             setBand(Band.EU);
             setFrequency(new Frequency(9000));
@@ -541,8 +544,6 @@ public class RadioService extends Service implements IRadio, AudioManager.OnAudi
         public void run() {
             if (!mRadio.getState())
                 return;
-
-            Log.v(TAG, "Polling state");
 
             getFrequency();
             getVolume();

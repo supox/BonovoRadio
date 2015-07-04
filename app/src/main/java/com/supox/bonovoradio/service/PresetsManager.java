@@ -17,7 +17,6 @@ public final class PresetsManager {
     private final Context m_context;
     private List<Preset> mPresets;
     private int m_currentIndex = 0;
-    private int activePresetIndex;
 
     public PresetsManager(Context context) {
         m_context = context;
@@ -51,12 +50,7 @@ public final class PresetsManager {
             mPresets.add(new Preset());
         }
         mPresets.set(index, preset);
-
-        //save the task list to preference
-        SharedPreferences prefs = m_context.getSharedPreferences(SHARED_PREFS_FILE, Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = prefs.edit();
-        editor.putString(PRESETS, serializePresets());
-        editor.commit();
+        saveState();
     }
 
     public Preset getPreset(int index) {
@@ -92,6 +86,7 @@ public final class PresetsManager {
     public void deletePreset(int presetIndex) {
         try {
             mPresets.get(presetIndex).isValid = false;
+            saveState();
         } catch (Exception ex) {
         }
     }
@@ -99,7 +94,17 @@ public final class PresetsManager {
     public void renamePreset(int presetIndex, String name) {
         try {
             mPresets.get(presetIndex).name = name;
+            saveState();
         } catch (Exception ex) {
         }
     }
+
+    private void saveState() {
+        //save the task list to preference
+        SharedPreferences prefs = m_context.getSharedPreferences(SHARED_PREFS_FILE, Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.putString(PRESETS, serializePresets());
+        editor.commit();
+    }
+
 }

@@ -303,22 +303,27 @@
         </LinearLayout>
 
         <!-- Frequency dial -->
-        <RelativeLayout android:layout_width="match_parent"
+        <RelativeLayout
+            android:layout_width="260sp"
             android:layout_height="match_parent"
             android:layout_centerInParent="true"
             android:layout_margin="20sp">
-        <ImageView android:id="@+id/frequency_bar"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_centerInParent="true"
-            android:contentDescription="Frequency"
-            android:src="@drawable/dial_frequency" />
-        <ImageView android:id="@+id/frequency_needle"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_centerInParent="true"
-            android:contentDescription="Needle"
-            android:src="@drawable/freq_dial_needle" />
+
+            <ImageView android:id="@+id/frequency_bar"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_centerInParent="true"
+                android:contentDescription="Frequency"
+                android:src="@drawable/dial_frequency" />
+
+            <ImageView android:id="@+id/frequency_needle"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_centerInParent="true"
+                android:contentDescription="Needle"
+                android:src="@drawable/freq_dial_needle" />
+
+
         </RelativeLayout>
 
         <!-- presets right -->

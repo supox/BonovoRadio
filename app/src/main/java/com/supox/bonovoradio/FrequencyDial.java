@@ -1,6 +1,5 @@
 package com.supox.bonovoradio;
 
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 
@@ -27,7 +26,7 @@ public class FrequencyDial implements View.OnTouchListener {
     private Timer timer;
 
     private double mMaxAngle = frequencyToAngle(10800);
-    private double mMinAngle = frequencyToAngle(7600);
+    private double mMinAngle = frequencyToAngle(8760);
 
     private static final double FREQ_PERCENT_FACTOR = 25.15 / 3;
     private static final double FREQ_AT_210 = 8520 + 150 * FREQ_PERCENT_FACTOR;
@@ -52,14 +51,7 @@ public class FrequencyDial implements View.OnTouchListener {
             case MotionEvent.ACTION_DOWN:
             case MotionEvent.ACTION_MOVE:
                 isDownDial = true;
-
-                double angle = getAngle(event);
-
-                if (updateScrollPoint(angle)) {
-                    return true;
-                }
-
-                break;
+                return updateScrollPoint(getAngle(event));
             case MotionEvent.ACTION_UP:
                 isDownDial = false;
                 return true;
@@ -114,19 +106,18 @@ public class FrequencyDial implements View.OnTouchListener {
     }
 
     private boolean updateScrollPoint(double angle) {
-        Log.d("updateScrollPoint", "" + angle);
-        if (Double.isNaN(angle))
-            return (false);
+        if(!isAngleValid(angle))
+            return false;
 
-        if(isAngleValid(angle)) {
-            setViewAngle(angle);
-            updateListener(angle);
-        }
+        setViewAngle(angle);
+        updateListener(angle);
 
         return true;
     }
 
     private boolean isAngleValid(double angle) {
+        if (Double.isNaN(angle))
+            return (false);
         return (angle >= mMinAngle && angle <= mMaxAngle);
     }
 }

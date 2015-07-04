@@ -156,8 +156,6 @@ int Radio::getFrequency() {
   m_SeekState = STOP;
   m_Frequency = freq;
 
-  snprintf(buffer, sizeof(buffer), "Got frequency %d. Valid=%d", m_Frequency, temp.is_valid ? 1 : 0);
-  Logger::Verbose(buffer);
   return (m_Frequency);
 }
 
