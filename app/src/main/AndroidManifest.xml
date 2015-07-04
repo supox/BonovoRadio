@@ -15,15 +15,17 @@
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
+                <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.APP_MUSIC" />
             </intent-filter>
         </activity>
 
-        <receiver android:name=".MediaButtonIntentReceiver">
+        <receiver android:name="com.supox.bonovoradio.MediaButtonIntentReceiver">
             <intent-filter>
                 <action android:name="android.intent.action.MEDIA_BUTTON" />
                 <action android:name="android.intent.action.BONOVO_RADIO_KEY" />
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.QUICKBOOT_POWERON" />
             </intent-filter>
         </receiver>
 

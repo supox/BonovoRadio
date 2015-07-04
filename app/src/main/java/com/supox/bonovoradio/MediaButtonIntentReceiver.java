@@ -25,17 +25,17 @@ public class MediaButtonIntentReceiver extends BroadcastReceiver {
                     case KeyEvent.KEYCODE_MEDIA_NEXT:
                         it = new Intent(context, RadioService.class);
                         it.setAction(RadioService.ACTION_NEXT);
-                        context.sendBroadcast(it);
+                        context.startService(it);
                         break;
                     case KeyEvent.KEYCODE_MEDIA_PREVIOUS:
                         it = new Intent(context, RadioService.class);
                         it.setAction(RadioService.ACTION_PREVIOUS);
-                        context.sendBroadcast(it);
+                        context.startService(it);
                         break;
                 }
-            }
-            if (isOrderedBroadcast()) {
-                abortBroadcast();
+                if (isOrderedBroadcast()) {
+                    abortBroadcast();
+                }
             }
         } else if (intent.getAction().equals("android.intent.action.BONOVO_RADIO_KEY")) {
             Intent newActivityIntent = new Intent();

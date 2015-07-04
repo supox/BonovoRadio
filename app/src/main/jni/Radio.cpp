@@ -86,18 +86,16 @@ void Radio::setRDSState(State state) {
 
   switch(state) {
   case START:
-    if(ioctl(fd_rds, RDS_IOCTL_START_DATA) == 0 &&
-      send_command(CMD_RADIO_RDS_ON_OFF, 0x01)) {
+    if(ioctl(fd_rds, RDS_IOCTL_START_DATA) == 0) {
       Logger::Debug("Starting RDS");
       m_RDSState = state;
-      }
+    }
     break;
     case STOP: default:
-    if(ioctl(fd_rds, RDS_IOCTL_STOP_DATA) == 0 &&
-      send_command(CMD_RADIO_RDS_ON_OFF, 0x00)) {
+    if(ioctl(fd_rds, RDS_IOCTL_STOP_DATA) == 0) {
       Logger::Debug("Stopping RDS");
       m_RDSState = state;
-      }
+    }
     break;
   }
 }
@@ -132,6 +130,8 @@ const static int freqFactor = 1;
 void Radio::setFrequency(const int freq) {
   snprintf(buffer, sizeof(buffer), "Setting frequency %d", freq);
   Logger::Debug(buffer);
+
+  setRDSState(STOP);
 
   int freq10 = freq / freqFactor;
   if(send_command(CMD_RADIO_FREQ, freq10 & 0x0FF, (freq10 >> 8) & 0x0FF))

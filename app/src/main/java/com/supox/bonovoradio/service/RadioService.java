@@ -5,6 +5,7 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -16,6 +17,7 @@ import android.util.Log;
 
 import com.google.gson.Gson;
 import com.supox.bonovoradio.MainActivity;
+import com.supox.bonovoradio.MediaButtonIntentReceiver;
 import com.supox.bonovoradio.R;
 import com.supox.bonovoradio.api.IRadio;
 import com.supox.bonovoradio.api.IRadioListener;
@@ -62,6 +64,7 @@ public class RadioService extends Service implements IRadio, AudioManager.OnAudi
                 case "android.intent.action.BONOVO_WAKEUP_KEY":
                     setTunerState(TunerState.Start);
                     setFrequency(mState.frequency);
+                    setVolume(100);
                     break;
                 case "android.intent.action.BONOVO_RADIO_TURNDOWN":
                     prevStation();
@@ -87,6 +90,8 @@ public class RadioService extends Service implements IRadio, AudioManager.OnAudi
         mAudioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
         mAudioManager.requestAudioFocus(this, AudioManager.STREAM_MUSIC,
                 AudioManager.AUDIOFOCUS_GAIN);
+        mAudioManager.registerMediaButtonEventReceiver(new ComponentName(
+                getPackageName(), MediaButtonIntentReceiver.class.getName()));
 
         // register to power state
         this.registerReceiver(powerStateReceiver, getRadioStateIntentFilter());
@@ -108,10 +113,7 @@ public class RadioService extends Service implements IRadio, AudioManager.OnAudi
             else
                 setBand(mState.band);
             setFrequency(mState.frequency);
-            if (mState.frequency != null || mState.volume != 0)
-                setVolume(mState.volume);
-            else
-                setVolume(100);
+            setVolume(100);
         } else {
             setBand(Band.EU);
             setFrequency(new Frequency(9000));
@@ -130,7 +132,11 @@ public class RadioService extends Service implements IRadio, AudioManager.OnAudi
     @Override
     public void onDestroy() {
         mPollTimer.cancel();
+
         mAudioManager.abandonAudioFocus(this);
+        mAudioManager.unregisterMediaButtonEventReceiver(new ComponentName(
+                getPackageName(), MediaButtonIntentReceiver.class.getName()));
+
         stopForeground(false);
         NotificationManager nm = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         nm.cancel(NOTIFICATION_ID);
