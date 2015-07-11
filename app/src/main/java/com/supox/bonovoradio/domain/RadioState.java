@@ -1,6 +1,6 @@
 package com.supox.bonovoradio.domain;
 
-public class RadioState {
+public class RadioState implements java.io.Serializable {
     public Band band;
     public Frequency frequency;
     public RDSState rdsState;

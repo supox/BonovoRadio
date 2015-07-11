@@ -115,7 +115,6 @@ public class RadioService extends Service implements IRadio, AudioManager.OnAudi
             setVolume(100);
         } else {
             setBand(Band.EU);
-            setFrequency(new Frequency(9000));
             setVolume(100);
             setSeekState(SeekState.NotSeek);
         }

@@ -1,6 +1,6 @@
 package com.supox.bonovoradio.domain;
 
-public class Frequency {
+public class Frequency implements java.io.Serializable {
     private static final int MHZ_FREQ_INC = 5;
     private final int mFrequency;
 
